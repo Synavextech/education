@@ -6,6 +6,11 @@ export const insertEventSchema = z.object({
     description: z.string().min(1, "Description is required"),
     date: z.string(),
     location: z.string(),
+    locations: z.array(z.any()).default([]),
+    target_age_group: z.string().default('ALL'),
+    min_age: z.coerce.number().optional().nullable(),
+    max_age: z.coerce.number().optional().nullable(),
+    is_child_focused: z.boolean().default(false),
     price: z.coerce.number().min(0),
     heroImageUrl: z.string().optional(),
     imageUrls: z.array(z.string()).default([]),
@@ -25,6 +30,14 @@ export const insertEventSchema = z.object({
 });
 
 export type InsertEvent = z.infer<typeof insertEventSchema>;
+
+export interface EventLocation {
+    id: string;
+    name: string;
+    address?: string;
+    time?: string;
+    capacity?: number;
+}
 
 export interface EventActivity {
     day: number;
@@ -50,6 +63,11 @@ export interface EventFAQ {
 
 export interface Event extends InsertEvent {
     id: string;
+    locations: EventLocation[];
+    target_age_group: string;
+    min_age?: number | null;
+    max_age?: number | null;
+    is_child_focused: boolean;
     activities: EventActivity[];
     speakers: EventSpeaker[];
     faqs: EventFAQ[];
@@ -79,6 +97,10 @@ export interface Booking {
     headAdminName?: string;
     institutionContact?: string;
     institutionDetails?: Record<string, any>;
+    selectedLocation?: string;
+    attendeeAge?: number;
+    guardianName?: string;
+    guardianPhone?: string;
     checkedIn?: boolean;
     checkedInAt?: string;
     createdAt: string;

@@ -109,10 +109,10 @@ export default function About() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                         <div className="relative group">
                             <div className="absolute -inset-4 bg-primary/20 rounded-3xl blur-2xl group-hover:bg-primary/30 transition-colors" />
-                            <img 
-                                src="/images/IMG-20260618-WA0008.jpg" 
-                                alt="WorldDucationCentre in Action" 
-                                className="relative rounded-3xl shadow-2xl border border-border w-full h-[450px] object-cover" 
+                            <img
+                                src="/images/IMG-20260618-WA0008.jpg"
+                                alt="worlducationHub in Action"
+                                className="relative rounded-3xl shadow-2xl border border-border w-full h-[450px] object-cover"
                             />
                         </div>
                         <div className="space-y-6">
@@ -125,7 +125,7 @@ export default function About() {
                                 <span className="text-primary">Shaping the Future</span>
                             </h2>
                             <p className="text-lg text-muted-foreground leading-relaxed">
-                                WorldDucationCentre (WDC) is a global educational transformation organization committed to the total digitization of the learning environment. We bridge the technology gap by deploying smart computer labs, specialized U-Tab educational tablets, and structured seasonal innovation summits.
+                                worlducationHub is a global educational transformation organization committed to the total digitization of the learning environment. We bridge the technology gap by deploying smart computer labs, specialized U-Tab educational tablets, and structured seasonal innovation summits.
                             </p>
                             <p className="text-base text-muted-foreground leading-relaxed">
                                 From regional centres like Maria Soti and Singore to nationwide training workshops, we provide the tools, connectivity, and mentorship young minds need to become tomorrow's innovators.
@@ -256,7 +256,7 @@ export default function About() {
                                 </span>
                             </h2>
                             <p className="text-base sm:text-lg text-slate-300 font-light leading-relaxed mb-8">
-                                From setting up brand-new computer labs in schools to conducting hands-on coding workshops and seasonal summits, explore how WorldDucationCentre is transforming lives.
+                                From setting up brand-new computer labs in schools to conducting hands-on coding workshops and seasonal summits, explore how worlducationHub is transforming lives.
                             </p>
                             <div>
                                 <Link href="/past-events">
@@ -272,19 +272,17 @@ export default function About() {
                                 <img
                                     key={idx}
                                     src={img}
-                                    alt="WorldDucationCentre Activity"
-                                    className={`absolute inset-0 w-full h-full object-cover rounded-3xl shadow-2xl transition-all duration-1000 transform ${
-                                        idx === currentEventIdx ? 'opacity-100 scale-100 rotate-0' : 'opacity-0 scale-95 -rotate-2'
-                                    }`}
+                                    alt="worlducationHub Activity"
+                                    className={`absolute inset-0 w-full h-full object-cover rounded-3xl shadow-2xl transition-all duration-1000 transform ${idx === currentEventIdx ? 'opacity-100 scale-100 rotate-0' : 'opacity-0 scale-95 -rotate-2'
+                                        }`}
                                 />
                             ))}
                             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
                                 {eventShuffleImages.map((_, idx) => (
                                     <div
                                         key={idx}
-                                        className={`h-1.5 rounded-full transition-all duration-500 ${
-                                            idx === currentEventIdx ? 'w-8 bg-cyan-400' : 'w-2 bg-white/30'
-                                        }`}
+                                        className={`h-1.5 rounded-full transition-all duration-500 ${idx === currentEventIdx ? 'w-8 bg-cyan-400' : 'w-2 bg-white/30'
+                                            }`}
                                     />
                                 ))}
                             </div>

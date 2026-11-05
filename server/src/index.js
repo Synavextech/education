@@ -454,8 +454,8 @@ app.post('/api/mpesa/stkpush', async (req, res) => {
             PartyB: partyB,
             PhoneNumber: formattedPhone,
             CallBackURL: callbackUrl,
-            AccountReference: `WDC-${bookingId.slice(0, 6).toUpperCase()}`,
-            TransactionDesc: `WorldDucationCentre Event Booking`
+            AccountReference: `WUH-${bookingId.slice(0, 6).toUpperCase()}`,
+            TransactionDesc: `worlducationHub Event Booking`
         };
 
         const response = await fetch(stkUrl, {

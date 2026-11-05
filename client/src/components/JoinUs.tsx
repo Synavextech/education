@@ -16,7 +16,7 @@ export default function JoinUs() {
                 </div>
 
                 <h2 className="text-3xl sm:text-5xl font-black mb-6 tracking-tight leading-tight">
-                    Join the WorldDucationCentre Global Network
+                    Join the worlducationHub Global Network
                 </h2>
 
                 <p className="text-base sm:text-xl text-slate-300 font-light leading-relaxed mb-10 max-w-2xl mx-auto">
@@ -26,7 +26,7 @@ export default function JoinUs() {
                 <div className="flex flex-col sm:flex-row justify-center gap-4">
                     <Link href="/auth">
                         <Button size="lg" className="bg-white text-slate-900 hover:bg-slate-100 font-bold px-8 h-14 text-base rounded-2xl shadow-2xl hover:scale-105 transition-all">
-                            Join WorldDucationCentre Portal
+                            Join worlducationHub Portal
                         </Button>
                     </Link>
                     <Link href="/upcoming-events">

@@ -693,7 +693,7 @@ export function BookInterviewModal({ open, onOpenChange, eventId, eventTitle, on
                     </div>
                     <DialogTitle className="text-2xl font-black">Book an Interview with Us</DialogTitle>
                     <DialogDescription>
-                        {eventTitle ? `Schedule a dedicated session during ${eventTitle}.` : "Meet 1-on-1 with WorldDucationCentre directors, academic coordinators, and institutional partners."}
+                        {eventTitle ? `Schedule a dedicated session during ${eventTitle}.` : "Meet 1-on-1 with worlducationHub directors, academic coordinators, and institutional partners."}
                     </DialogDescription>
                 </DialogHeader>
 

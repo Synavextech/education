@@ -18,7 +18,11 @@ interface Booking {
     eventId: string;
     status: string;
     category: string;
-    amount: number;
+    amount?: number;
+    amountPaid?: number;
+    selectedLocation?: string;
+    attendeeAge?: number;
+    guardianName?: string;
     createdAt: string;
     event: any;
 }
@@ -245,6 +249,9 @@ export default function MyRequests() {
                     eventTitle: booking.event.title,
                     eventDate: format(new Date(booking.event.date), 'PPPP'),
                     eventLocation: booking.event.location,
+                    selectedLocation: (booking as any).selectedLocation || booking.event.location,
+                    attendeeAge: (booking as any).attendeeAge,
+                    guardianName: (booking as any).guardianName,
                     userName: profile?.name || user?.email?.split('@')[0] || "Attendee",
                     userEmail: user?.email || '',
                     category: booking.category,
@@ -270,10 +277,13 @@ export default function MyRequests() {
             eventTitle: booking.event.title,
             eventDate: format(new Date(booking.event.date), 'PPPP'),
             eventLocation: booking.event.location,
+            selectedLocation: (booking as any).selectedLocation || booking.event.location,
+            attendeeAge: (booking as any).attendeeAge,
+            guardianName: (booking as any).guardianName,
             userName: profile?.name || user?.email?.split('@')[0] || "Attendee",
             userEmail: user?.email || "",
             category: booking.category,
-            amountPaid: booking.amount,
+            amountPaid: booking.amountPaid || (booking as any).amount || 0,
             bookingId: booking.id
         });
     };
@@ -344,6 +354,18 @@ export default function MyRequests() {
                                             <Calendar className="h-4 w-4" />
                                             {format(new Date(booking.event?.date), 'PPP')}
                                         </div>
+                                        {((booking as any).selectedLocation || booking.event?.location) && (
+                                            <div className="flex items-center gap-1.5 text-xs text-primary font-semibold mt-1">
+                                                <MapPin className="h-3.5 w-3.5 shrink-0" />
+                                                <span className="line-clamp-1">Venue: {(booking as any).selectedLocation || booking.event?.location}</span>
+                                            </div>
+                                        )}
+                                        {(booking as any).attendeeAge !== undefined && (booking as any).attendeeAge !== null && (
+                                            <div className="flex items-center gap-1.5 text-xs text-slate-600 mt-1">
+                                                <Users className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                                                <span>Attendee Age: {(booking as any).attendeeAge} yrs</span>
+                                            </div>
+                                        )}
                                     </CardHeader>
                                     <CardContent className="p-6 pt-0 flex justify-between items-center">
                                         <div>

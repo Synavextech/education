@@ -44,7 +44,9 @@ export default function HeroSection({
                     </div>
                 )}
                 {showShortcuts && (
-                    <HeroShortcuts className="mt-8" />
+                    <div id="participate-showcase" className="w-full scroll-mt-24">
+                        <HeroShortcuts className="mt-8" />
+                    </div>
                 )}
             </div>
         </section>

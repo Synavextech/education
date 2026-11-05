@@ -12,7 +12,7 @@ export default function Footer() {
                             <div className="w-10 h-10 bg-gradient-to-tr from-primary to-indigo-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
                                 <GraduationCap className="h-6 w-6" />
                             </div>
-                            <span className="text-2xl font-black text-white tracking-tight">WorldDucationCentre</span>
+                            <span className="text-2xl font-black text-white tracking-tight">worlducationHub</span>
                         </div>
                         <p className="text-sm leading-relaxed text-slate-400 max-w-sm">
                             We help deliver knowledge and skill shaping the future. Our mission is to ensure complete digitization of the learning environment through modern school computer labs, smart learning tablets, and seasonal innovation events.
@@ -39,11 +39,11 @@ export default function Footer() {
                     <div>
                         <h4 className="font-bold text-white mb-4 text-sm uppercase tracking-wider">Seasonal Focus</h4>
                         <ul className="space-y-2.5 text-sm text-slate-400">
-                            <li>🌸 Spring: Digital Literacy</li>
-                            <li>☀️ Summer: STEM & Coding</li>
-                            <li>🍂 Autumn: Educator Forums</li>
-                            <li>❄️ Winter: Global Education</li>
-                            <li>💻 Smart U-Tab Ecosystem</li>
+                            <li>Spring: Digital Literacy</li>
+                            <li>Summer: STEM & Coding</li>
+                            <li>Autumn: Educator Forums</li>
+                            <li>Winter: Global Education</li>
+                            <li>Smart U-Tab Ecosystem</li>
                         </ul>
                     </div>
 
@@ -53,17 +53,17 @@ export default function Footer() {
                         <ul className="space-y-3 text-sm">
                             <li className="flex items-center gap-2.5">
                                 <Mail className="h-4 w-4 text-primary shrink-0" />
-                                <a href="mailto:support@worldducationcentre.org" className="hover:text-white transition-colors">
-                                    support@worldducationcentre.org
+                                <a href="mailto:support@worlducationhub.org" className="hover:text-white transition-colors">
+                                    support@worlducationhub.org
                                 </a>
                             </li>
                             <li className="flex items-center gap-2.5">
                                 <Phone className="h-4 w-4 text-primary shrink-0" />
-                                <span>+1 (720) 994-8847</span>
+                                <span>+254713022910</span>
                             </li>
                             <li className="flex items-start gap-2.5">
                                 <MapPin className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                                <span>4334 Rider Trail, Philtop, Colorado, USA</span>
+                                <span>worlducationHub Head Office Nairobi</span>
                             </li>
                         </ul>
                     </div>
@@ -71,7 +71,7 @@ export default function Footer() {
 
                 {/* Bottom legal & copyright */}
                 <div className="border-t border-slate-800/80 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-                    <p>© {new Date().getFullYear()} WorldDucationCentre (WDC). All rights reserved.</p>
+                    <p>© {new Date().getFullYear()} worlducationHub. All rights reserved.</p>
                     <div className="flex items-center gap-6">
                         <Link href="/terms" className="hover:text-slate-300 transition-colors">Terms of Service</Link>
                         <Link href="/privacy" className="hover:text-slate-300 transition-colors">Privacy Policy</Link>

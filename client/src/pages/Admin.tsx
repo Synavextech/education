@@ -8,9 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Loader2, Plus, Trash2, Edit2, Upload, Image as ImageIcon, CheckCircle, User2, QrCode, ShieldCheck, Search, MessageCircle, Send, GraduationCap, Banknote, CheckCheck } from "lucide-react";
+import { Loader2, Plus, Trash2, Edit2, Upload, Image as ImageIcon, CheckCircle, User2, QrCode, ShieldCheck, Search, MessageCircle, Send, GraduationCap, Banknote, CheckCheck, MapPin, Users } from "lucide-react";
 import { format } from "date-fns";
-import { Event, insertEventSchema, VisaInvitation, Booking } from "@shared/schema";
+import { Event, insertEventSchema, VisaInvitation, Booking, EventLocation } from "@shared/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { cn } from "@/lib/utils";
@@ -710,6 +710,25 @@ function BookingManager() {
                                         </div>
                                     )}
 
+                                    {/* Selected Location & Attendee Age */}
+                                    {(booking.selectedLocation || booking.attendeeAge !== undefined) && (
+                                        <div className="flex flex-wrap items-center gap-3 text-xs bg-slate-50 p-2 rounded-xl border border-slate-200 mb-2">
+                                            {booking.selectedLocation && (
+                                                <span className="flex items-center gap-1 font-semibold text-primary">
+                                                    <MapPin className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                                                    Attending Venue: <strong>{booking.selectedLocation}</strong>
+                                                </span>
+                                            )}
+                                            {booking.attendeeAge !== undefined && (
+                                                <span className="flex items-center gap-1 text-slate-700">
+                                                    <Users className="h-3.5 w-3.5 text-slate-500 flex-shrink-0" />
+                                                    Age: <strong>{booking.attendeeAge} years</strong>
+                                                    {booking.guardianName && ` (Guardian: ${booking.guardianName}${booking.guardianPhone ? ` - ${booking.guardianPhone}` : ''})`}
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
+
                                     <div className="flex flex-wrap gap-4 text-xs items-center mt-2">
                                         <span className="text-gray-500">Category: <strong>{booking.category}</strong></span>
                                         <span className="text-gray-500">Amount: <strong>{formatKES(booking.amountPaid)}</strong></span>
@@ -1113,6 +1132,11 @@ export default function AdminDashboard() {
     const [heroImagePreview, setHeroImagePreview] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'events' | 'bookings' | 'blogs' | 'visa' | 'proposals' | 'applications' | 'users' | 'support'>('events');
     const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+    const [locations, setLocations] = useState<EventLocation[]>([]);
+    const [targetAgeGroup, setTargetAgeGroup] = useState<string>("ALL");
+    const [minAge, setMinAge] = useState<number | ''>('');
+    const [maxAge, setMaxAge] = useState<number | ''>('');
+    const [isChildFocused, setIsChildFocused] = useState<boolean>(false);
 
     useEffect(() => {
         fetchEvents();
@@ -1229,6 +1253,11 @@ export default function AdminDashboard() {
         setBenefits(event.benefits || []);
         setAlignment(event.alignment || { title: "", description: "" });
         setJourney(event.journey || { arrival: "", expectations: "" });
+        setLocations(event.locations || []);
+        setTargetAgeGroup(event.target_age_group || 'ALL');
+        setMinAge(event.min_age !== undefined && event.min_age !== null ? event.min_age : '');
+        setMaxAge(event.max_age !== undefined && event.max_age !== null ? event.max_age : '');
+        setIsChildFocused(!!event.is_child_focused);
         setHeroImagePreview(event.heroImageUrl || null);
         setHeroImageFile(null);
 
@@ -1277,6 +1306,11 @@ export default function AdminDashboard() {
         setBenefits([]);
         setAlignment({ title: "", description: "" });
         setJourney({ arrival: "", expectations: "" });
+        setLocations([]);
+        setTargetAgeGroup('ALL');
+        setMinAge('');
+        setMaxAge('');
+        setIsChildFocused(false);
         setSelectedImages([]);
         setImagePreviews([]);
         setHeroImageFile(null);
@@ -1295,7 +1329,10 @@ export default function AdminDashboard() {
         const theme = formData.get('theme') as string;
         const description = formData.get('description') as string;
         const dateStr = formData.get('date') as string;
-        const location = formData.get('location') as string;
+        const locationInputVal = (formData.get('location') as string) || '';
+        const primaryLocation = locations.length > 0
+            ? locations.map(l => l.name).filter(Boolean).join(' | ')
+            : locationInputVal;
         const priceStr = formData.get('price') as string;
         const selfFundedSeats = formData.get('self_funded_seats') as string;
         const partiallyFundedSeats = formData.get('partially_funded_seats') as string;
@@ -1367,7 +1404,12 @@ export default function AdminDashboard() {
                         theme,
                         description,
                         date: eventDate.toISOString(),
-                        location,
+                        location: primaryLocation || locationInputVal || "TBD",
+                        locations,
+                        target_age_group: targetAgeGroup,
+                        min_age: minAge !== '' ? Number(minAge) : null,
+                        max_age: maxAge !== '' ? Number(maxAge) : null,
+                        is_child_focused: isChildFocused,
                         price: parseFloat(priceStr) || 0,
                         heroImageUrl: finalHeroImageUrl,
                         imageUrls: finalImageUrls,
@@ -1401,7 +1443,12 @@ export default function AdminDashboard() {
                         theme,
                         description,
                         date: eventDate.toISOString(),
-                        location,
+                        location: primaryLocation || locationInputVal || "TBD",
+                        locations,
+                        target_age_group: targetAgeGroup,
+                        min_age: minAge !== '' ? Number(minAge) : null,
+                        max_age: maxAge !== '' ? Number(maxAge) : null,
+                        is_child_focused: isChildFocused,
                         price: parseFloat(priceStr) || 0,
                         heroImageUrl: finalHeroImageUrl,
                         imageUrls: imageUrls,
@@ -1444,6 +1491,11 @@ export default function AdminDashboard() {
             setBenefits([]);
             setAlignment({ title: "", description: "" });
             setJourney({ arrival: "", expectations: "" });
+            setLocations([]);
+            setTargetAgeGroup('ALL');
+            setMinAge('');
+            setMaxAge('');
+            setIsChildFocused(false);
             console.log("[Submit] Form submission completed successfully.");
         } catch (error: any) {
             console.error("[Submit] Error during event creation:", error);
@@ -1664,10 +1716,204 @@ export default function AdminDashboard() {
                                         </Card>
                                     ))}
                                 </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="location">Location</Label>
-                                    <Input id="location" name="location" placeholder="Nairobi, Kenya" />
+                                <div className="space-y-4 border-t pt-4">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">Target Age & Child Streamlining</h3>
+                                            <p className="text-xs text-muted-foreground">Configure age suitability to streamline registration & child-focused tracks</p>
+                                        </div>
+                                        {isChildFocused && (
+                                            <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full">
+                                                Child-Focused Event
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="target_age_group">Target Age Group</Label>
+                                        <select
+                                            id="target_age_group"
+                                            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                                            value={targetAgeGroup}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                setTargetAgeGroup(val);
+                                                if (val === 'CHILDREN_7_12') {
+                                                    setMinAge(7);
+                                                    setMaxAge(12);
+                                                    setIsChildFocused(true);
+                                                } else if (val === 'TEENS_13_17') {
+                                                    setMinAge(13);
+                                                    setMaxAge(17);
+                                                    setIsChildFocused(false);
+                                                } else if (val === 'YOUTH_18_PLUS') {
+                                                    setMinAge(18);
+                                                    setMaxAge(65);
+                                                    setIsChildFocused(false);
+                                                } else if (val === 'ALL') {
+                                                    setMinAge('');
+                                                    setMaxAge('');
+                                                    setIsChildFocused(false);
+                                                }
+                                            }}
+                                        >
+                                            <option value="ALL">All Ages / Open to Everyone</option>
+                                            <option value="CHILDREN_7_12">Children Specialized (7–12 years) • Kids Track</option>
+                                            <option value="TEENS_13_17">Teens & Junior Youth (13–17 years)</option>
+                                            <option value="YOUTH_18_PLUS">Youth & Adults (18+ years)</option>
+                                            <option value="CUSTOM">Custom Age Range</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <Label htmlFor="min_age" className="text-xs">Minimum Age (years)</Label>
+                                            <Input
+                                                id="min_age"
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                placeholder="e.g. 7"
+                                                value={minAge}
+                                                onChange={e => setMinAge(e.target.value === '' ? '' : Number(e.target.value))}
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <Label htmlFor="max_age" className="text-xs">Maximum Age (years)</Label>
+                                            <Input
+                                                id="max_age"
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                placeholder="e.g. 15"
+                                                value={maxAge}
+                                                onChange={e => setMaxAge(e.target.value === '' ? '' : Number(e.target.value))}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center space-x-2 pt-1">
+                                        <input
+                                            type="checkbox"
+                                            id="is_child_focused"
+                                            checked={isChildFocused}
+                                            onChange={e => setIsChildFocused(e.target.checked)}
+                                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary accent-primary cursor-pointer"
+                                        />
+                                        <Label htmlFor="is_child_focused" className="text-xs font-medium cursor-pointer">
+                                            Mark as Child-Focused Event (Tailored kid curriculum, scholarship tiers & parent/guardian verification)
+                                        </Label>
+                                    </div>
                                 </div>
+
+                                <div className="space-y-4 border-t pt-4">
+                                    <div className="flex justify-between items-center">
+                                        <div>
+                                            <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">Event Locations (Same-Day / Multiple Venues)</h3>
+                                            <p className="text-xs text-muted-foreground">Declare multiple venues on the event day so attendees can choose their location</p>
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="gap-1.5"
+                                            onClick={() => setLocations([...locations, { id: `loc_${Date.now()}`, name: "", address: "", time: "", capacity: 100 }])}
+                                        >
+                                            <Plus className="h-3.5 w-3.5" />
+                                            Add Location
+                                        </Button>
+                                    </div>
+
+                                    {locations.map((loc, idx) => (
+                                        <Card key={loc.id || idx} className="p-3 bg-muted/20 border-primary/20 space-y-2.5">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-xs font-bold text-primary flex items-center gap-1">
+                                                    <MapPin className="h-3.5 w-3.5" /> Location #{idx + 1}
+                                                </span>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10"
+                                                    onClick={() => setLocations(locations.filter((_, i) => i !== idx))}
+                                                >
+                                                    <Trash2 className="h-3.5 w-3.5" />
+                                                </Button>
+                                            </div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                <div>
+                                                    <Label className="text-[11px] font-semibold">Venue / Center Name *</Label>
+                                                    <Input
+                                                        placeholder="e.g. Main Auditorium - Campus A"
+                                                        className="h-8 text-xs bg-background mt-0.5"
+                                                        value={loc.name}
+                                                        onChange={e => {
+                                                            const newL = [...locations];
+                                                            newL[idx].name = e.target.value;
+                                                            setLocations(newL);
+                                                        }}
+                                                        required
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <Label className="text-[11px] font-semibold">Session Time / Schedule</Label>
+                                                    <Input
+                                                        placeholder="e.g. 09:00 AM - 01:00 PM"
+                                                        className="h-8 text-xs bg-background mt-0.5"
+                                                        value={loc.time || ""}
+                                                        onChange={e => {
+                                                            const newL = [...locations];
+                                                            newL[idx].time = e.target.value;
+                                                            setLocations(newL);
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                                <div className="sm:col-span-2">
+                                                    <Label className="text-[11px] font-semibold">Street Address / Room Details</Label>
+                                                    <Input
+                                                        placeholder="e.g. Ngong Rd, Innovation Block B, 2nd Floor"
+                                                        className="h-8 text-xs bg-background mt-0.5"
+                                                        value={loc.address || ""}
+                                                        onChange={e => {
+                                                            const newL = [...locations];
+                                                            newL[idx].address = e.target.value;
+                                                            setLocations(newL);
+                                                        }}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <Label className="text-[11px] font-semibold">Capacity (Seats)</Label>
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="100"
+                                                        className="h-8 text-xs bg-background mt-0.5"
+                                                        value={loc.capacity || ""}
+                                                        onChange={e => {
+                                                            const newL = [...locations];
+                                                            newL[idx].capacity = e.target.value ? Number(e.target.value) : undefined;
+                                                            setLocations(newL);
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </Card>
+                                    ))}
+
+                                    <div className="space-y-1">
+                                        <Label htmlFor="location" className="text-xs font-semibold">
+                                            {locations.length > 0 ? "Primary / Summary Location (Auto-synced or City)" : "Location / City *"}
+                                        </Label>
+                                        <Input
+                                            id="location"
+                                            name="location"
+                                            placeholder="e.g. Nairobi, Kenya"
+                                            defaultValue=""
+                                        />
+                                    </div>
+                                </div>
+
                                 <div className="space-y-2">
                                     <Label htmlFor="description" className="text-primary font-semibold">Overview/About</Label>
                                     <Textarea
@@ -1956,9 +2202,23 @@ export default function AdminDashboard() {
                                         )}
                                         <div className="flex-1">
                                             <h3 className="font-bold text-lg">{event.title}</h3>
-                                            <p className="text-sm text-gray-500 mb-2">
+                                            <p className="text-sm text-gray-500 mb-1">
                                                 {format(new Date(event.date), 'PPP p')} • {event.location} • ${event.price}
                                             </p>
+                                            {event.locations && event.locations.length > 0 && (
+                                                <div className="flex items-center gap-1.5 text-xs text-primary font-semibold mb-1">
+                                                    <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+                                                    <span>{event.locations.length} Same-Day Venues: {event.locations.map((l: any) => l.name).join(', ')}</span>
+                                                </div>
+                                            )}
+                                            {(event.is_child_focused || (event.min_age !== null && event.min_age !== undefined)) && (
+                                                <div className="flex items-center gap-1.5 text-xs text-amber-700 font-medium mb-1">
+                                                    <Users className="h-3.5 w-3.5 flex-shrink-0" />
+                                                    <span>
+                                                        {event.is_child_focused ? "👶 Child-Focused Track" : "Age Target"}: {event.min_age ? `${event.min_age}` : '0'}{event.max_age ? `–${event.max_age} yrs` : '+ yrs'}
+                                                    </span>
+                                                </div>
+                                            )}
                                             <p className="text-gray-600 line-clamp-2 text-sm">{event.description}</p>
                                         </div>
                                         <div className="flex flex-col gap-2">

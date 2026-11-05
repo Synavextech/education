@@ -47,6 +47,7 @@ export default function NavBar() {
         { href: "/", label: "Home" },
         { href: "/about", label: "About Us" },
         { href: "/upcoming-events", label: "Seasonal Events", dropdown: "upcoming" },
+        { href: "/#participate-showcase", label: "Participate & Showcase" },
         { href: "/past-events", label: "Event Archive", dropdown: "past" },
         { href: "/blog", label: "Digital Insights" },
     ];
@@ -65,7 +66,7 @@ export default function NavBar() {
                     </div>
                     <div className="flex flex-col">
                         <span className="text-xl sm:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-primary to-indigo-700 dark:from-white dark:via-cyan-400 dark:to-indigo-300 bg-clip-text text-transparent">
-                            WorldDucationCentre
+                            worlducationHub
                         </span>
                         <span className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground hidden sm:block">
                             Shaping The Future • Digitizing Learning
@@ -121,6 +122,17 @@ export default function NavBar() {
                             ) : (
                                 <Link
                                     href={link.href}
+                                    onClick={() => {
+                                        if (link.href.includes("#")) {
+                                            const id = link.href.split("#")[1];
+                                            setTimeout(() => {
+                                                const el = document.getElementById(id);
+                                                if (el) {
+                                                    el.scrollIntoView({ behavior: "smooth", block: "start" });
+                                                }
+                                            }, 100);
+                                        }
+                                    }}
                                     className={cn(
                                         "text-sm font-semibold transition-all duration-200 hover:text-primary relative py-2",
                                         location === link.href ? "text-primary" : "text-muted-foreground"
@@ -231,6 +243,15 @@ export default function NavBar() {
                                             else setIsPastOpen(!isPastOpen);
                                         } else {
                                             setIsMenuOpen(false);
+                                            if (link.href.includes("#")) {
+                                                const id = link.href.split("#")[1];
+                                                setTimeout(() => {
+                                                    const el = document.getElementById(id);
+                                                    if (el) {
+                                                        el.scrollIntoView({ behavior: "smooth", block: "start" });
+                                                    }
+                                                }, 100);
+                                            }
                                         }
                                     }}
                                     className={cn(

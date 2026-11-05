@@ -65,7 +65,7 @@ export default function HeroShortcuts({ className, targetEventId, targetEventTit
             id: "interview",
             title: "Book an Interview",
             badge: "1-on-1 Consultation",
-            preview: "Schedule executive consultations, media press sessions, or institutional partnerships with WDC directors.",
+            preview: "Schedule executive consultations, media press sessions, or institutional partnerships with worlducationHub directors.",
             icon: CalendarCheck,
             color: "from-emerald-500/20 to-green-500/10 border-emerald-500/30 text-emerald-400 group-hover:border-emerald-400",
             badgeColor: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
@@ -82,7 +82,7 @@ export default function HeroShortcuts({ className, targetEventId, targetEventTit
             badgeColor: "bg-amber-500/20 text-amber-300 border-amber-500/40",
             buttonText: "Chat Now",
             action: () => {
-                openLiveSupportChat("Hello! I would like to make an inquiry regarding WorldDucationCentre events and proposals.");
+                openLiveSupportChat("Hello! I would like to make an inquiry regarding worlducationHub events and proposals.");
             }
         }
     ];

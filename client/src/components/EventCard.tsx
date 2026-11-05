@@ -61,9 +61,25 @@ export default function EventCard({ event }: { event: any }) {
                 <CardTitle className="text-xl font-bold group-hover:text-primary transition-colors line-clamp-1">
                     {event.title}
                 </CardTitle>
-                <div className="flex items-center gap-1.5 text-muted-foreground text-xs mt-1">
-                    <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
-                    <span className="line-clamp-1">{event.location}</span>
+                <div className="flex items-center gap-1.5 text-muted-foreground text-xs mt-1 flex-wrap">
+                    <div className="flex items-center gap-1">
+                        <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
+                        <span className="line-clamp-1">{event.location}</span>
+                    </div>
+                    {event.locations && event.locations.length > 1 && (
+                        <span className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full">
+                            {event.locations.length} Venues
+                        </span>
+                    )}
+                    {event.is_child_focused ? (
+                        <span className="bg-amber-500/15 text-amber-700 dark:text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-500/20">
+                            👶 Child-Focused (7–15 yrs)
+                        </span>
+                    ) : (event.min_age !== null && event.min_age !== undefined) ? (
+                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                            Age: {event.min_age}{event.max_age ? `–${event.max_age}` : '+'} yrs
+                        </span>
+                    ) : null}
                 </div>
             </CardHeader>
 

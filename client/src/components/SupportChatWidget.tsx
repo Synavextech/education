@@ -284,11 +284,11 @@ export default function SupportChatWidget({ whatsappNumber }: SupportChatWidgetP
             // If it's the first message and no admin has replied yet, provide automated guidance
             if (messages.length === 0) {
                 setTimeout(async () => {
-                    const reply = "Thank you for contacting WorldDucationCentre Support! An educational consultant will be right with you. You can also switch to WhatsApp if you prefer real-time mobile messaging.";
+                    const reply = "Thank you for contacting worlducationHub Support! An educational consultant will be right with you. You can also switch to WhatsApp if you prefer real-time mobile messaging.";
                     await supabase.from("SupportMessage").insert({
                         conversationId: activeConvId,
                         senderRole: "ADMIN",
-                        senderName: "WDC Assistant",
+                        senderName: "worlducationHub Assistant",
                         message: reply,
                         isRead: false
                     });
@@ -306,7 +306,7 @@ export default function SupportChatWidget({ whatsappNumber }: SupportChatWidgetP
     };
 
     const defaultWhatsAppMessage = encodeURIComponent(
-        "Hello! I am contacting you from WorldDucationCentre and would like assistance with upcoming educational programs and event registrations."
+        "Hello! I am contacting you from worlducationHub and would like assistance with upcoming educational programs and event registrations."
     );
     const whatsappUrl = `https://wa.me/${cleanNumber}?text=${defaultWhatsAppMessage}`;
 
@@ -326,7 +326,7 @@ export default function SupportChatWidget({ whatsappNumber }: SupportChatWidgetP
                             </div>
                             <div>
                                 <h3 className="text-sm font-bold flex items-center gap-1.5">
-                                    WorldDucationCentre Support
+                                    worlducationHub Support
                                 </h3>
                                 <p className="text-[11px] text-emerald-400 font-medium flex items-center gap-1">
                                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -449,7 +449,7 @@ export default function SupportChatWidget({ whatsappNumber }: SupportChatWidgetP
                                             </div>
                                             <div className="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-2xl rounded-tl-sm p-3 max-w-[82%] shadow-sm leading-relaxed">
                                                 <p className="font-semibold text-slate-900 dark:text-white mb-0.5">
-                                                    WorldDucation Support
+                                                    worlducationHub Support
                                                 </p>
                                                 Hello! How can we help you today with events, admissions, school declaration, or tickets?
                                             </div>

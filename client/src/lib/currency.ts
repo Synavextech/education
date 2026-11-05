@@ -1,5 +1,5 @@
 /**
- * Central Currency and Pricing Utilities for WorldDucationCentre
+ * Central Currency and Pricing Utilities for worlducationHub
  * Default System Currency: Kenya Shillings (KES / KSh)
  */
 

@@ -7,13 +7,13 @@ export default function CompliancePolicy() {
 
             <div className="bg-primary/10 border-l-4 border-primary p-5 mb-8 rounded-r-2xl">
                 <p className="text-primary font-medium">
-                    At WorldDucationCentre (WDC), we are committed to conducting our operations with integrity and in compliance with all applicable laws, regulations, and global ethical standards.
+                    At worlducationHub, we are committed to conducting our operations with integrity and in compliance with all applicable laws, regulations, and global ethical standards.
                 </p>
             </div>
 
             <h2 className="text-2xl font-bold mt-8 mb-4 text-foreground">Our Commitment</h2>
             <p className="mb-4 text-muted-foreground leading-relaxed">
-                WorldDucationCentre is dedicated to maintaining the highest standards of compliance in all educational, lab infrastructure, and seasonal event activities. We expect all our employees, volunteers, educational partners, and stakeholders to adhere strictly to these standards.
+                worlducationHub is dedicated to maintaining the highest standards of compliance in all educational, lab infrastructure, and seasonal event activities. We expect all our employees, volunteers, educational partners, and stakeholders to adhere strictly to these standards.
             </p>
 
             <h2 className="text-2xl font-bold mt-8 mb-4 text-foreground">Key Areas of Compliance</h2>
@@ -29,7 +29,7 @@ export default function CompliancePolicy() {
                 If you suspect any violation of our compliance policy or legal obligations, we encourage you to report it immediately. All reports will be handled confidentially and investigated thoroughly.
             </p>
             <p className="mb-4 text-muted-foreground">
-                You can report concerns to: <a href="mailto:support@worldducationcentre.org" className="text-primary hover:underline font-bold">support@worldducationcentre.org</a>
+                You can report concerns to: <a href="mailto:support@worlducationhub.org" className="text-primary hover:underline font-bold">support@worlducationhub.org</a>
             </p>
         </div>
     );

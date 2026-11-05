@@ -1,19 +1,27 @@
 -- ==============================================================================
--- WorldDucationCentre Unified & Consolidated Database Schema
+-- worlducationHub Master Database Schema & Production Setup Script
 -- File: database_schema.sql
--- Description: Central single-source-of-truth SQL setup for Supabase:
---   - Storage Buckets & Policies
---   - Core System Enums & Tables
---   - Event Booking & Proposal Tracks (Proposals, Tech Exhibitions, Presentations, Interviews)
---   - Live Support Chat (Conversations & Messages)
---   - Wallet, Stats, Notifications, Blogs, Testimonials, Identity Verification
---   - Automated Triggers, Indexes, RLS Policies & Realtime Publications
+-- Description: Central single-source-of-truth SQL script for Supabase:
+--   1. Extensions & Storage Buckets
+--   2. Enums & Core Master Tables (User, Event, Booking)
+--   3. Engagement Tracks (Proposals, Tech Exhibitions, Event Presentations, Interview Bookings, Applications)
+--   4. Community, Media & Finance (Blog, Testimonial, Visa, Notifications, Wallet, Stats, Identity Verification)
+--   5. Live Support Chat (SupportConversation, SupportMessage)
+--   6. Schema Evolution & Migration Alignments (Safe for existing & new databases)
+--   7. High-Performance Indexes
+--   8. Automated Functions & Triggers
+--   9. Row Level Security (RLS) & Granular Access Policies
+--  10. Critical Initial Sync & Realtime Publications
 -- ==============================================================================
 
+-- ==============================================================================
 -- 1. EXTENSIONS
+-- ==============================================================================
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+-- ==============================================================================
 -- 2. STORAGE BUCKETS
+-- ==============================================================================
 INSERT INTO storage.buckets (id, name, public) VALUES 
   ('event-media', 'event-media', true),
   ('user-documents', 'user-documents', false),
@@ -21,16 +29,20 @@ INSERT INTO storage.buckets (id, name, public) VALUES
   ('visa-documents', 'visa-documents', true)
 ON CONFLICT (id) DO UPDATE SET public = EXCLUDED.public;
 
+-- ==============================================================================
 -- 3. ENUMS
+-- ==============================================================================
 DO $$ BEGIN
     CREATE TYPE role AS ENUM ('USER', 'ADMIN');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
--- 4. CORE TABLES
+-- ==============================================================================
+-- 4. CORE APPLICATION TABLES
+-- ==============================================================================
 
--- User Profiles
+-- User Profiles Table
 CREATE TABLE IF NOT EXISTS "User" (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     email TEXT UNIQUE NOT NULL,
@@ -48,12 +60,7 @@ CREATE TABLE IF NOT EXISTS "User" (
     "updatedAt" TIMESTAMP DEFAULT NOW()
 );
 
-ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "institutionName" TEXT;
-ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "institutionAddress" TEXT;
-ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "headAdminName" TEXT;
-ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "institutionContact" TEXT;
-
--- Events Table
+-- Events Table (Supports Multi-Locations, Child Age Streamlining, Proposals & Tracks)
 CREATE TABLE IF NOT EXISTS "Event" (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL,
@@ -61,36 +68,35 @@ CREATE TABLE IF NOT EXISTS "Event" (
     description TEXT NOT NULL,
     date TIMESTAMP NOT NULL,
     location TEXT NOT NULL,
+    locations JSONB DEFAULT '[]'::JSONB,
+    target_age_group TEXT DEFAULT 'ALL',
+    min_age INTEGER DEFAULT NULL,
+    max_age INTEGER DEFAULT NULL,
+    is_child_focused BOOLEAN DEFAULT FALSE,
     price DECIMAL(10,2) NOT NULL,
+    "heroImageUrl" TEXT,
     "imageUrls" TEXT[] DEFAULT '{}',
-    activities JSONB DEFAULT '[]',
-    alignment JSONB DEFAULT '{}',
-    features JSONB DEFAULT '[]',
-    speakers JSONB DEFAULT '[]',
-    journey JSONB DEFAULT '{}',
-    faqs JSONB DEFAULT '[]',
+    activities JSONB DEFAULT '[]'::JSONB,
+    alignment JSONB DEFAULT '{}'::JSONB,
+    features JSONB DEFAULT '[]'::JSONB,
+    speakers JSONB DEFAULT '[]'::JSONB,
+    journey JSONB DEFAULT '{}'::JSONB,
+    faqs JSONB DEFAULT '[]'::JSONB,
     self_funded_seats INTEGER DEFAULT 0,
     partially_funded_seats INTEGER DEFAULT 0,
     fully_funded_seats INTEGER DEFAULT 0,
     benefits JSONB DEFAULT '[]'::JSONB,
     requires_proposal BOOLEAN DEFAULT FALSE,
-    type TEXT DEFAULT 'PHYSICAL', -- enum: PHYSICAL, VIRTUAL, BOTH
+    type TEXT DEFAULT 'PHYSICAL', -- PHYSICAL, VIRTUAL, BOTH
     meeting_link TEXT,
-    "heroImageUrl" TEXT,
     "createdAt" TIMESTAMP DEFAULT NOW(),
     "updatedAt" TIMESTAMP DEFAULT NOW()
 );
 
-ALTER TABLE "Event" ADD COLUMN IF NOT EXISTS "benefits" JSONB DEFAULT '[]'::JSONB;
-ALTER TABLE "Event" ADD COLUMN IF NOT EXISTS "requires_proposal" BOOLEAN DEFAULT FALSE;
-ALTER TABLE "Event" ADD COLUMN IF NOT EXISTS "type" TEXT DEFAULT 'PHYSICAL';
-ALTER TABLE "Event" ADD COLUMN IF NOT EXISTS "meeting_link" TEXT;
-ALTER TABLE "Event" ADD COLUMN IF NOT EXISTS "heroImageUrl" TEXT;
-
--- Bookings Table (Streamlined for M-Pesa, Card, PayPal)
+-- Bookings Table (Streamlined for M-Pesa, Card, PayPal; Multi-Location & Age / Guardian details)
 CREATE TABLE IF NOT EXISTS "Booking" (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    "userId" UUID NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
+    "userId" UUID NOT NULL DEFAULT auth.uid() REFERENCES "User"(id) ON DELETE CASCADE,
     "eventId" UUID NOT NULL REFERENCES "Event"(id) ON DELETE CASCADE,
     category TEXT NOT NULL DEFAULT 'SELF_FUNDED',
     "amountPaid" DECIMAL(10,2) NOT NULL DEFAULT 0,
@@ -101,6 +107,10 @@ CREATE TABLE IF NOT EXISTS "Booking" (
     "mpesaReceiptNumber" TEXT,
     "mpesaPhoneNumber" TEXT,
     "mpesaCheckoutRequestId" TEXT,
+    "selectedLocation" TEXT,
+    "attendeeAge" INTEGER,
+    "guardianName" TEXT,
+    "guardianPhone" TEXT,
     "institutionName" TEXT,
     "institutionAddress" TEXT,
     "headAdminName" TEXT,
@@ -112,28 +122,10 @@ CREATE TABLE IF NOT EXISTS "Booking" (
     "updatedAt" TIMESTAMP DEFAULT NOW()
 );
 
-ALTER TABLE "Booking" ALTER COLUMN "userId" SET DEFAULT auth.uid();
-ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "mode" TEXT DEFAULT 'PHYSICAL';
-ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "paymentMethod" TEXT DEFAULT 'MPESA';
-ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "paymentStatus" TEXT DEFAULT 'PENDING';
-ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "mpesaReceiptNumber" TEXT;
-ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "mpesaPhoneNumber" TEXT;
-ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "mpesaCheckoutRequestId" TEXT;
-ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "institutionName" TEXT;
-ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "institutionAddress" TEXT;
-ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "headAdminName" TEXT;
-ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "institutionContact" TEXT;
-ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "institutionDetails" JSONB DEFAULT '{}'::JSONB;
-ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "checkedIn" BOOLEAN DEFAULT FALSE;
-ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "checkedInAt" TIMESTAMP;
-ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP DEFAULT NOW();
-
--- 5. PROPOSALS & ENGAGEMENT TRACK TABLES
-
 -- Proposals Table (Project, Research & Community Review)
 CREATE TABLE IF NOT EXISTS "Proposals" (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    "userId" UUID REFERENCES "User"("id") ON DELETE CASCADE,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    "userId" UUID DEFAULT auth.uid() REFERENCES "User"("id") ON DELETE CASCADE,
     "eventId" UUID REFERENCES "Event"("id") ON DELETE CASCADE,
     title TEXT,
     category TEXT DEFAULT 'GENERAL', -- GENERAL, RESEARCH, CURRICULUM, GRANT, COMMUNITY
@@ -146,15 +138,10 @@ CREATE TABLE IF NOT EXISTS "Proposals" (
     "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-ALTER TABLE "Proposals" ALTER COLUMN "userId" SET DEFAULT auth.uid();
-ALTER TABLE "Proposals" ADD COLUMN IF NOT EXISTS "title" TEXT;
-ALTER TABLE "Proposals" ADD COLUMN IF NOT EXISTS "category" TEXT DEFAULT 'GENERAL';
-ALTER TABLE "Proposals" ADD COLUMN IF NOT EXISTS "adminNotes" TEXT;
-
--- Tech Exhibitions Table (Sell / Showcase Technology During Event)
+-- Tech Exhibitions Table (Sell & Showcase Technology During Event)
 CREATE TABLE IF NOT EXISTS "TechExhibitions" (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    "userId" UUID NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    "userId" UUID NOT NULL DEFAULT auth.uid() REFERENCES "User"(id) ON DELETE CASCADE,
     "eventId" UUID REFERENCES "Event"(id) ON DELETE SET NULL,
     "companyName" TEXT NOT NULL,
     "productName" TEXT NOT NULL,
@@ -172,12 +159,10 @@ CREATE TABLE IF NOT EXISTS "TechExhibitions" (
     "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-ALTER TABLE "TechExhibitions" ALTER COLUMN "userId" SET DEFAULT auth.uid();
-
 -- Event Presentations Table (Presentations, Keynotes & Workshops)
 CREATE TABLE IF NOT EXISTS "EventPresentations" (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    "userId" UUID NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    "userId" UUID NOT NULL DEFAULT auth.uid() REFERENCES "User"(id) ON DELETE CASCADE,
     "eventId" UUID REFERENCES "Event"(id) ON DELETE SET NULL,
     "presenterName" TEXT NOT NULL,
     title TEXT NOT NULL,
@@ -194,12 +179,10 @@ CREATE TABLE IF NOT EXISTS "EventPresentations" (
     "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-ALTER TABLE "EventPresentations" ALTER COLUMN "userId" SET DEFAULT auth.uid();
-
--- Interview Bookings Table (Book an Interview With Us)
+-- Interview Bookings Table (1-on-1 Interview Bookings)
 CREATE TABLE IF NOT EXISTS "InterviewBookings" (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    "userId" UUID NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    "userId" UUID NOT NULL DEFAULT auth.uid() REFERENCES "User"(id) ON DELETE CASCADE,
     "eventId" UUID REFERENCES "Event"(id) ON DELETE SET NULL,
     "applicantName" TEXT NOT NULL,
     email TEXT NOT NULL,
@@ -218,12 +201,10 @@ CREATE TABLE IF NOT EXISTS "InterviewBookings" (
     "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-ALTER TABLE "InterviewBookings" ALTER COLUMN "userId" SET DEFAULT auth.uid();
-
 -- General Applications Table (Speakers, Sponsors, NextGen)
 CREATE TABLE IF NOT EXISTS "Applications" (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    "userId" UUID REFERENCES "User"("id") ON DELETE CASCADE,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    "userId" UUID DEFAULT auth.uid() REFERENCES "User"("id") ON DELETE CASCADE,
     type TEXT NOT NULL CHECK (type IN ('SPEAKER', 'SPONSOR', 'NEXTGEN', 'GLOBAL_FORUM')),
     status TEXT NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
     description TEXT NOT NULL,
@@ -233,10 +214,6 @@ CREATE TABLE IF NOT EXISTS "Applications" (
     "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
-ALTER TABLE "Applications" ALTER COLUMN "userId" SET DEFAULT auth.uid();
-
--- 6. COMMUNITY & SYSTEM TABLES
 
 -- BlogPosts Table
 CREATE TABLE IF NOT EXISTS "BlogPost" (
@@ -260,7 +237,7 @@ CREATE TABLE IF NOT EXISTS "Testimonial" (
 -- Visa Invitations Table
 CREATE TABLE IF NOT EXISTS "VisaInvitation" (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    "userId" UUID NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
+    "userId" UUID NOT NULL DEFAULT auth.uid() REFERENCES "User"(id) ON DELETE CASCADE,
     "eventId" UUID NOT NULL REFERENCES "Event"(id) ON DELETE CASCADE,
     status TEXT NOT NULL DEFAULT 'PENDING',
     "amountPaid" DECIMAL(10,2) NOT NULL DEFAULT 0,
@@ -269,9 +246,6 @@ CREATE TABLE IF NOT EXISTS "VisaInvitation" (
     "createdAt" TIMESTAMP DEFAULT NOW(),
     "updatedAt" TIMESTAMP DEFAULT NOW()
 );
-
-ALTER TABLE "VisaInvitation" ALTER COLUMN "userId" SET DEFAULT auth.uid();
-ALTER TABLE "VisaInvitation" ADD COLUMN IF NOT EXISTS "letterUrl" TEXT;
 
 -- Notifications Table
 CREATE TABLE IF NOT EXISTS "Notification" (
@@ -284,7 +258,7 @@ CREATE TABLE IF NOT EXISTS "Notification" (
     "createdAt" TIMESTAMP DEFAULT NOW()
 );
 
--- Wallets Table (Default currency KES)
+-- Wallets Table (Default currency Kenya Shillings - KES)
 CREATE TABLE IF NOT EXISTS "Wallet" (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "userId" UUID NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
@@ -292,8 +266,6 @@ CREATE TABLE IF NOT EXISTS "Wallet" (
     currency TEXT DEFAULT 'KES',
     "updatedAt" TIMESTAMP DEFAULT NOW()
 );
-
-ALTER TABLE "Wallet" ALTER COLUMN currency SET DEFAULT 'KES';
 
 -- Stats Table
 CREATE TABLE IF NOT EXISTS "Stats" (
@@ -315,8 +287,6 @@ CREATE TABLE IF NOT EXISTS "IdentityVerification" (
     "createdAt" TIMESTAMP DEFAULT NOW(),
     "updatedAt" TIMESTAMP DEFAULT NOW()
 );
-
--- 7. LIVE SUPPORT CHAT TABLES
 
 -- Support Conversations Table
 CREATE TABLE IF NOT EXISTS "SupportConversation" (
@@ -345,7 +315,90 @@ CREATE TABLE IF NOT EXISTS "SupportMessage" (
     "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 8. INDEXES FOR PERFORMANCE
+-- ==============================================================================
+-- 5. SCHEMA EVOLUTION & MIGRATION ALIGNMENTS (Safe for Existing Databases)
+-- ==============================================================================
+
+-- Clean up any historical cashCollectedBy foreign keys/columns to avoid PostgREST embedding conflicts
+DO $$ 
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.table_constraints 
+        WHERE constraint_name = 'Booking_cashCollectedBy_fkey' 
+        AND table_name = 'Booking'
+    ) THEN
+        ALTER TABLE "Booking" DROP CONSTRAINT "Booking_cashCollectedBy_fkey";
+    END IF;
+
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'Booking' AND column_name = 'cashCollectedBy'
+    ) THEN
+        ALTER TABLE "Booking" DROP COLUMN "cashCollectedBy";
+    END IF;
+END $$;
+
+-- Align User columns
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "institutionName" TEXT;
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "institutionAddress" TEXT;
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "headAdminName" TEXT;
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "institutionContact" TEXT;
+
+-- Align Event columns
+ALTER TABLE "Event" ADD COLUMN IF NOT EXISTS "locations" JSONB DEFAULT '[]'::JSONB;
+ALTER TABLE "Event" ADD COLUMN IF NOT EXISTS "target_age_group" TEXT DEFAULT 'ALL';
+ALTER TABLE "Event" ADD COLUMN IF NOT EXISTS "min_age" INTEGER DEFAULT NULL;
+ALTER TABLE "Event" ADD COLUMN IF NOT EXISTS "max_age" INTEGER DEFAULT NULL;
+ALTER TABLE "Event" ADD COLUMN IF NOT EXISTS "is_child_focused" BOOLEAN DEFAULT FALSE;
+ALTER TABLE "Event" ADD COLUMN IF NOT EXISTS "benefits" JSONB DEFAULT '[]'::JSONB;
+ALTER TABLE "Event" ADD COLUMN IF NOT EXISTS "requires_proposal" BOOLEAN DEFAULT FALSE;
+ALTER TABLE "Event" ADD COLUMN IF NOT EXISTS "type" TEXT DEFAULT 'PHYSICAL';
+ALTER TABLE "Event" ADD COLUMN IF NOT EXISTS "meeting_link" TEXT;
+ALTER TABLE "Event" ADD COLUMN IF NOT EXISTS "heroImageUrl" TEXT;
+
+-- Align Booking columns & defaults
+ALTER TABLE "Booking" ALTER COLUMN "userId" SET DEFAULT auth.uid();
+ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "mode" TEXT DEFAULT 'PHYSICAL';
+ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "paymentMethod" TEXT DEFAULT 'MPESA';
+ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "paymentStatus" TEXT DEFAULT 'PENDING';
+ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "mpesaReceiptNumber" TEXT;
+ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "mpesaPhoneNumber" TEXT;
+ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "mpesaCheckoutRequestId" TEXT;
+ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "selectedLocation" TEXT;
+ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "attendeeAge" INTEGER;
+ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "guardianName" TEXT;
+ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "guardianPhone" TEXT;
+ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "institutionName" TEXT;
+ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "institutionAddress" TEXT;
+ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "headAdminName" TEXT;
+ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "institutionContact" TEXT;
+ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "institutionDetails" JSONB DEFAULT '{}'::JSONB;
+ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "checkedIn" BOOLEAN DEFAULT FALSE;
+ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "checkedInAt" TIMESTAMP;
+ALTER TABLE "Booking" ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP DEFAULT NOW();
+
+-- Standardize payment status & remove legacy cash-on-arrival values
+UPDATE "Booking" SET "paymentMethod" = 'CARD' WHERE "paymentMethod" = 'CASH_ON_ARRIVAL';
+UPDATE "Booking" SET status = 'PENDING' WHERE status = 'PENDING_PAYMENT_ON_ARRIVAL';
+UPDATE "Booking" SET "paymentStatus" = 'UNPAID' WHERE "paymentStatus" = 'PAID_IN_CASH';
+ALTER TABLE "Booking" ALTER COLUMN "paymentMethod" SET DEFAULT 'MPESA';
+ALTER TABLE "Booking" ALTER COLUMN "paymentStatus" SET DEFAULT 'PENDING';
+
+-- Align Proposal / Visa columns
+ALTER TABLE "Proposals" ALTER COLUMN "userId" SET DEFAULT auth.uid();
+ALTER TABLE "Proposals" ADD COLUMN IF NOT EXISTS "title" TEXT;
+ALTER TABLE "Proposals" ADD COLUMN IF NOT EXISTS "category" TEXT DEFAULT 'GENERAL';
+ALTER TABLE "Proposals" ADD COLUMN IF NOT EXISTS "adminNotes" TEXT;
+ALTER TABLE "VisaInvitation" ALTER COLUMN "userId" SET DEFAULT auth.uid();
+ALTER TABLE "VisaInvitation" ADD COLUMN IF NOT EXISTS "letterUrl" TEXT;
+
+-- Align Wallet default currency
+ALTER TABLE "Wallet" ALTER COLUMN currency SET DEFAULT 'KES';
+UPDATE "Wallet" SET currency = 'KES' WHERE currency = 'USD' OR currency IS NULL;
+
+-- ==============================================================================
+-- 6. INDEXES FOR HIGH-PERFORMANCE QUERIES
+-- ==============================================================================
 CREATE INDEX IF NOT EXISTS idx_user_email ON "User"(email);
 CREATE INDEX IF NOT EXISTS idx_event_date ON "Event"(date);
 CREATE INDEX IF NOT EXISTS idx_booking_user_id ON "Booking"("userId");
@@ -375,9 +428,11 @@ CREATE INDEX IF NOT EXISTS idx_support_conv_status ON "SupportConversation"(stat
 CREATE INDEX IF NOT EXISTS idx_support_msg_conv_id ON "SupportMessage"("conversationId");
 CREATE INDEX IF NOT EXISTS idx_support_msg_created_at ON "SupportMessage"("createdAt");
 
--- 9. FUNCTIONS & AUTOMATED TRIGGERS
+-- ==============================================================================
+-- 7. FUNCTIONS & AUTOMATED TRIGGERS
+-- ==============================================================================
 
--- UpdatedAt Timestamp Trigger
+-- Timestamp Update Function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -386,6 +441,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Apply UpdatedAt Triggers across all updated entities
 DROP TRIGGER IF EXISTS update_user_updated_at ON "User";
 CREATE TRIGGER update_user_updated_at BEFORE UPDATE ON "User" FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
@@ -425,7 +481,7 @@ CREATE TRIGGER update_identity_verification_updated_at BEFORE UPDATE ON "Identit
 DROP TRIGGER IF EXISTS update_support_conversation_updated_at ON "SupportConversation";
 CREATE TRIGGER update_support_conversation_updated_at BEFORE UPDATE ON "SupportConversation" FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- User Profile Sync on Signup
+-- User Profile Sync on Signup (Authenticated Auth Trigger)
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -469,7 +525,7 @@ BEGIN
     INSERT INTO public."Stats" ("userId") VALUES (NEW.id) ON CONFLICT DO NOTHING;
     
     INSERT INTO public."Notification" ("userId", title, message, type)
-    VALUES (NEW.id, 'Welcome to WorldDucationCentre!', 'Welcome to our global educational community!', 'WELCOME');
+    VALUES (NEW.id, 'Welcome to worlducationHub!', 'Welcome to our global educational community!', 'WELCOME');
     
     RETURN NEW;
 EXCEPTION WHEN OTHERS THEN
@@ -494,7 +550,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
--- 10. ENABLE ROW LEVEL SECURITY (RLS)
+-- ==============================================================================
+-- 8. ENABLE ROW LEVEL SECURITY (RLS)
+-- ==============================================================================
 ALTER TABLE "User" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "Event" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "Booking" ENABLE ROW LEVEL SECURITY;
@@ -513,7 +571,9 @@ ALTER TABLE "InterviewBookings" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "SupportConversation" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "SupportMessage" ENABLE ROW LEVEL SECURITY;
 
--- 11. ROW LEVEL SECURITY POLICIES
+-- ==============================================================================
+-- 9. ROW LEVEL SECURITY POLICIES
+-- ==============================================================================
 
 -- >>> USERS
 DROP POLICY IF EXISTS "Users can read own data" ON "User";
@@ -526,7 +586,7 @@ CREATE POLICY "Users can update own profile" ON "User" FOR UPDATE USING (auth.ui
 CREATE POLICY "Admins can read all users" ON "User" FOR SELECT USING (is_admin());
 CREATE POLICY "Admins can update all users" ON "User" FOR UPDATE USING (is_admin());
 
--- >>> EVENTS (Public Read, Admin Full)
+-- >>> EVENTS (Public Read, Admin Full Management)
 DROP POLICY IF EXISTS "Public events are viewable by everyone" ON "Event";
 DROP POLICY IF EXISTS "Admins can manage all events" ON "Event";
 
@@ -574,7 +634,7 @@ CREATE POLICY "Users can update own tech exhibitions" ON "TechExhibitions" FOR U
 CREATE POLICY "Admins can view all tech exhibitions" ON "TechExhibitions" FOR SELECT USING (is_admin());
 CREATE POLICY "Admins can update all tech exhibitions" ON "TechExhibitions" FOR UPDATE USING (is_admin());
 
--- >>> EVENT PRESENTATIONS (Make Presentations / Speak)
+-- >>> EVENT PRESENTATIONS (Presentations & Speaker Submissions)
 DROP POLICY IF EXISTS "Users can view own event presentations" ON "EventPresentations";
 DROP POLICY IF EXISTS "Users can insert own event presentations" ON "EventPresentations";
 DROP POLICY IF EXISTS "Users can update own event presentations" ON "EventPresentations";
@@ -711,7 +771,9 @@ FOR ALL
 USING ( auth.uid()::text = (storage.foldername(name))[1] )
 WITH CHECK ( auth.uid()::text = (storage.foldername(name))[1] );
 
--- 12. CRITICAL DATA INITIALIZATION & SYNC
+-- ==============================================================================
+-- 10. CRITICAL DATA INITIALIZATION & SYNC
+-- ==============================================================================
 DO $$
 BEGIN
     INSERT INTO public."User" (id, email, name, role, "createdAt")
@@ -734,7 +796,9 @@ BEGIN
 END
 $$;
 
--- 13. REALTIME REPLICATION ENABLEMENT
+-- ==============================================================================
+-- 11. REALTIME REPLICATION ENABLEMENT
+-- ==============================================================================
 DO $$ BEGIN
     IF EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
         ALTER PUBLICATION supabase_realtime ADD TABLE "SupportConversation";
@@ -749,8 +813,10 @@ DO $$ BEGIN
 EXCEPTION WHEN OTHERS THEN NULL;
 END $$;
 
-COMMENT ON TABLE "Booking" IS 'Event bookings with M-Pesa, Card, and PayPal.';
+-- Document comments
+COMMENT ON TABLE "Event" IS 'Events with multi-location same-day scheduling and child-focused age tier declarations.';
+COMMENT ON TABLE "Booking" IS 'Event bookings streamlined with M-Pesa, Card, and PayPal. Cash on arrival removed.';
 COMMENT ON TABLE "Proposals" IS 'Proposals submitted for committee review.';
 COMMENT ON TABLE "TechExhibitions" IS 'Technology exhibition & commercial booth requests.';
 COMMENT ON TABLE "EventPresentations" IS 'Speaker and presentation abstracts for events.';
-COMMENT ON TABLE "InterviewBookings" IS '1-on-1 official interview bookings with WorldDucationCentre.';
+COMMENT ON TABLE "InterviewBookings" IS '1-on-1 official interview bookings with worlducationHub.';

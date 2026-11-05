@@ -42,6 +42,28 @@ export default function UpcomingEvents() {
     const [resumingBookingId, setResumingBookingId] = useState<string | null>(null);
     const [selectedSeason, setSelectedSeason] = useState<string>("ALL");
 
+    // Location & Child Age Streamlining State
+    const [selectedLocation, setSelectedLocation] = useState<string>("");
+    const [attendeeAge, setAttendeeAge] = useState<number | ''>('');
+    const [guardianName, setGuardianName] = useState<string>("");
+    const [guardianPhone, setGuardianPhone] = useState<string>("");
+
+    useEffect(() => {
+        if (bookingEvent) {
+            if (bookingEvent.locations && bookingEvent.locations.length > 0) {
+                setSelectedLocation(bookingEvent.locations[0].name);
+            } else {
+                setSelectedLocation(bookingEvent.location || "");
+            }
+            if (bookingEvent.is_child_focused) {
+                setBookingCategory('FULLY_FUNDED');
+                if (bookingEvent.min_age) {
+                    setAttendeeAge(bookingEvent.min_age);
+                }
+            }
+        }
+    }, [bookingEvent]);
+
     // Student & Institution Declaration State
     const [declareInstitution, setDeclareInstitution] = useState(false);
     const [institutionName, setInstitutionName] = useState("");
@@ -316,10 +338,14 @@ export default function UpcomingEvents() {
     }, [selectedEvent?.imageUrls?.length]);
 
     const bookingMutation = useMutation({
-        mutationFn: async ({ eventId, category, amount, institutionData }: {
+        mutationFn: async ({ eventId, category, amount, selectedLocation, attendeeAge, guardianName, guardianPhone, institutionData }: {
             eventId: string;
             category: string;
             amount: number;
+            selectedLocation?: string;
+            attendeeAge?: number;
+            guardianName?: string;
+            guardianPhone?: string;
             institutionData?: {
                 institutionName?: string;
                 institutionAddress?: string;
@@ -340,6 +366,10 @@ export default function UpcomingEvents() {
                 amountPaid: amount,
                 status: 'PENDING',
                 mode: bookingMode,
+                selectedLocation: selectedLocation || null,
+                attendeeAge: attendeeAge !== undefined ? attendeeAge : null,
+                guardianName: guardianName || null,
+                guardianPhone: guardianPhone || null,
                 institutionName: institutionData?.institutionName || null,
                 institutionAddress: institutionData?.institutionAddress || null,
                 headAdminName: institutionData?.headAdminName || null,
@@ -551,7 +581,7 @@ export default function UpcomingEvents() {
                                             { title: "Become a Speaker", icon: MessageCircle, color: "bg-blue-500", desc: "Share your expertise with a global audience.", type: 'SPEAKER' },
                                             { title: "Join as Sponsor", icon: Globe, color: "bg-purple-500", desc: "Support the next generation of digital leaders.", type: 'SPONSOR' },
                                             { title: "NextGenLeaders", icon: Users, color: "bg-amber-500", desc: "Our premium technology and digital incubator program.", type: 'NEXTGEN' },
-                                            { title: "#WorldDucationCentre Global Forum", icon: Globe, color: "bg-emerald-500", desc: "Champion digital learning & education empowerment in your region.", type: 'GLOBAL_FORUM' }
+                                            { title: "#worlducationHub Global Forum", icon: Globe, color: "bg-emerald-500", desc: "Champion digital learning & education empowerment in your region.", type: 'GLOBAL_FORUM' }
                                         ].map((item, i) => (
                                             <div key={i} className="p-6 rounded-2xl border border-slate-100 dark:border-slate-800 hover:shadow-lg transition-all">
                                                 <div className={`${item.color} w-10 h-10 rounded-xl flex items-center justify-center text-white mb-4`}>
@@ -897,6 +927,7 @@ export default function UpcomingEvents() {
                         backgroundImageUrl="/images/hero_Events.gif"
                         title="Seasonal Summits & Digital Labs"
                         subtitle="We run various events during various seasons of the year as our system is structured to shape future knowledge and digital skills."
+                        showShortcuts={true}
                     />
 
                     <section className="py-24 bg-background">
@@ -1050,6 +1081,164 @@ export default function UpcomingEvents() {
                                             <span className={cn("text-xs font-bold", bookingMode === mode.id ? "text-primary" : "text-slate-600")}>{mode.label}</span>
                                         </div>
                                     ))}
+                                </div>
+
+                                {/* Location Selection when Physical Mode */}
+                                {bookingMode === 'PHYSICAL' && (
+                                    <div className="space-y-2 p-3 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800 mb-4">
+                                        <div className="flex items-center justify-between">
+                                            <Label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                                                <MapPin className="h-4 w-4 text-primary" />
+                                                Choose Event Location to Attend:
+                                            </Label>
+                                            {bookingEvent.locations && bookingEvent.locations.length > 0 && (
+                                                <span className="text-[10px] text-primary font-semibold">
+                                                    {bookingEvent.locations.length} Same-Day Venues
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {bookingEvent.locations && bookingEvent.locations.length > 0 ? (
+                                            <div className="grid grid-cols-1 gap-2 pt-1">
+                                                {bookingEvent.locations.map((loc: any, lIdx: number) => {
+                                                    const isLocSelected = (selectedLocation === loc.name) || (!selectedLocation && lIdx === 0);
+                                                    return (
+                                                        <div
+                                                            key={loc.id || lIdx}
+                                                            onClick={() => setSelectedLocation(loc.name)}
+                                                            className={cn(
+                                                                "p-3 rounded-xl border text-left cursor-pointer transition-all flex justify-between items-start",
+                                                                isLocSelected
+                                                                    ? "border-primary bg-primary/5 ring-1 ring-primary"
+                                                                    : "bg-background hover:border-slate-300"
+                                                            )}
+                                                        >
+                                                            <div className="space-y-0.5">
+                                                                <div className="flex items-center gap-2">
+                                                                    <p className="text-xs font-bold text-slate-900 dark:text-white">{loc.name}</p>
+                                                                    {loc.time && (
+                                                                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium">
+                                                                            {loc.time}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                {loc.address && <p className="text-[11px] text-slate-500">{loc.address}</p>}
+                                                            </div>
+                                                            {isLocSelected && <CheckCircle className="h-4 w-4 text-primary shrink-0 mt-0.5" />}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center gap-2 p-2 bg-background rounded-xl border border-slate-200 text-xs text-slate-700">
+                                                <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
+                                                <span>Venue: <strong>{bookingEvent.location || "Main Center"}</strong></span>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Attendee Age Declaration & Child Streamlining */}
+                                <div className="space-y-3 p-4 bg-slate-50/80 dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800 mb-4">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
+                                                <Users className="h-4 w-4" />
+                                            </div>
+                                            <div>
+                                                <h5 className="font-bold text-sm text-slate-900 dark:text-slate-100">Attendee Age Declaration</h5>
+                                                <p className="text-[11px] text-slate-500">
+                                                    {bookingEvent.is_child_focused
+                                                        ? "Child-Focused Summit: Specially streamlined for children (7-15 yrs)"
+                                                        : "Declare age to streamline appropriate scholarship / student tier"}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        {bookingEvent.is_child_focused && (
+                                            <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full">
+                                                👶 Child Track
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="pt-1">
+                                        <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                            Attendee Age (in years) *
+                                        </Label>
+                                        <div className="flex items-center gap-3 mt-1">
+                                            <Input
+                                                type="number"
+                                                min="1"
+                                                max="120"
+                                                placeholder="e.g. 10"
+                                                value={attendeeAge}
+                                                onChange={e => {
+                                                    const val = e.target.value === '' ? '' : Number(e.target.value);
+                                                    setAttendeeAge(val);
+                                                    if (typeof val === 'number') {
+                                                        if (val >= 7 && val <= 15) {
+                                                            setBookingCategory('FULLY_FUNDED');
+                                                        } else if (val > 15 && val <= 17) {
+                                                            setBookingCategory('PARTIALLY_FUNDED');
+                                                        } else if (val >= 18) {
+                                                            setBookingCategory('SELF_FUNDED');
+                                                        }
+                                                    }
+                                                }}
+                                                className="h-9 text-sm rounded-xl max-w-[110px] bg-background font-bold text-primary"
+                                                required
+                                            />
+                                            <div className="text-xs">
+                                                {typeof attendeeAge === 'number' && attendeeAge >= 7 && attendeeAge <= 15 && (
+                                                    <span className="text-emerald-600 font-semibold flex items-center gap-1">
+                                                        <CheckCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                                                        Child Age (7–15 yrs): Exclusively Funded 50% Scholarship Selected!
+                                                    </span>
+                                                )}
+                                                {typeof attendeeAge === 'number' && attendeeAge > 15 && attendeeAge <= 17 && (
+                                                    <span className="text-blue-600 font-semibold flex items-center gap-1">
+                                                        <CheckCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                                                        Student Age (15–17 yrs): Partially Funded 25% Discount Selected!
+                                                    </span>
+                                                )}
+                                                {typeof attendeeAge === 'number' && attendeeAge >= 18 && (
+                                                    <span className="text-slate-600">Adult / General Delegate (18+ yrs)</span>
+                                                )}
+                                                {attendeeAge === '' && (
+                                                    <span className="text-slate-500 italic">Enter attendee age to auto-verify eligibility</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Parent / Guardian section for minors (under 18) */}
+                                    {((typeof attendeeAge === 'number' && attendeeAge < 18) || bookingEvent.is_child_focused) && (
+                                        <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2.5">
+                                            <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-800 dark:text-amber-400">
+                                                <span>Parent / Guardian Details (For Attendees Under 18)</span>
+                                            </div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                                <div>
+                                                    <Label className="text-[11px] font-semibold text-slate-700">Parent / Guardian Name</Label>
+                                                    <Input
+                                                        placeholder="e.g. Jane Doe"
+                                                        value={guardianName}
+                                                        onChange={e => setGuardianName(e.target.value)}
+                                                        className="h-8 text-xs rounded-xl mt-0.5 bg-background"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <Label className="text-[11px] font-semibold text-slate-700">Guardian Phone</Label>
+                                                    <Input
+                                                        placeholder="e.g. +254 712 345 678"
+                                                        value={guardianPhone}
+                                                        onChange={e => setGuardianPhone(e.target.value)}
+                                                        className="h-8 text-xs rounded-xl mt-0.5 bg-background"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="grid grid-cols-1 gap-3">
                                     {(() => {
@@ -1248,6 +1437,15 @@ export default function UpcomingEvents() {
                                         return;
                                     }
 
+                                    if (attendeeAge === '') {
+                                        toast({
+                                            title: "Attendee Age Required",
+                                            description: "Please declare the attendee's age so we can streamline your pass & benefits.",
+                                            variant: "destructive"
+                                        });
+                                        return;
+                                    }
+
                                     setSubmittingProposal(true);
 
                                     try {
@@ -1290,6 +1488,12 @@ export default function UpcomingEvents() {
                                             eventId: bookingEvent.id,
                                             category: finalCategory,
                                             amount: finalPrice,
+                                            selectedLocation: bookingMode === 'PHYSICAL'
+                                                ? (selectedLocation || (bookingEvent.locations?.[0]?.name) || bookingEvent.location || "Main Venue")
+                                                : "Virtual Online Hub",
+                                            attendeeAge: Number(attendeeAge),
+                                            guardianName: guardianName.trim() || undefined,
+                                            guardianPhone: guardianPhone.trim() || undefined,
                                             institutionData: declareInstitution && institutionName.trim() ? {
                                                 institutionName: institutionName.trim(),
                                                 institutionAddress: institutionAddress.trim(),

@@ -126,9 +126,12 @@ export default function VerifyTicket() {
         if (!bookingData) return;
         const attendee = bookingData.User || bookingData.user;
         await generateTicketPDF({
-            eventTitle: bookingData.Event?.title || "WorldDucationCentre Global Summit",
+            eventTitle: bookingData.Event?.title || "worlducationHub Global Summit",
             eventDate: bookingData.Event?.date ? format(new Date(bookingData.Event.date), "PPPP") : "TBA",
             eventLocation: bookingData.Event?.location || "Event Venue",
+            selectedLocation: bookingData.selectedLocation || bookingData.Event?.location,
+            attendeeAge: bookingData.attendeeAge,
+            guardianName: bookingData.guardianName,
             userName: attendee?.name || "Attendee",
             userEmail: attendee?.email || "",
             category: bookingData.category,
@@ -161,7 +164,7 @@ export default function VerifyTicket() {
                         Ticket & Receipt Authenticator
                     </h1>
                     <p className="text-sm text-muted-foreground">
-                        WorldDucationCentre official cryptographic pass verification and cash receipt settlement system
+                        worlducationHub official cryptographic pass verification and payment settlement system
                     </p>
                 </div>
 
@@ -246,7 +249,7 @@ export default function VerifyTicket() {
                             <div className="space-y-3 pb-6 border-b border-border">
                                 <span className="text-xs font-bold text-primary uppercase tracking-wider">Event Details</span>
                                 <h3 className="text-2xl font-bold text-foreground">
-                                    {bookingData.Event?.title || "WorldDucationCentre Global Event"}
+                                    {bookingData.Event?.title || "worlducationHub Global Event"}
                                 </h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-muted-foreground">
                                     <div className="flex items-center gap-2">
@@ -257,7 +260,11 @@ export default function VerifyTicket() {
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <MapPin className="h-4 w-4 text-primary" />
-                                        <span>{bookingData.Event?.location || "Event Venue"}</span>
+                                        <span>
+                                            {bookingData.selectedLocation
+                                                ? `${bookingData.selectedLocation} (${bookingData.Event?.location || "Main Venue"})`
+                                                : (bookingData.Event?.location || "Event Venue")}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -317,6 +324,21 @@ export default function VerifyTicket() {
                                             </p>
                                         </div>
                                     </div>
+
+                                    {(bookingData.attendeeAge !== undefined && bookingData.attendeeAge !== null) && (
+                                        <div className="flex items-start gap-3 sm:col-span-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-border">
+                                            <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                                                <User className="h-4 w-4" />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-muted-foreground font-medium">Declared Attendee Age</p>
+                                                <p className="text-sm font-bold text-foreground">
+                                                    {bookingData.attendeeAge} years old
+                                                    {bookingData.guardianName && ` • Guardian: ${bookingData.guardianName}${bookingData.guardianPhone ? ` (${bookingData.guardianPhone})` : ''}`}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 

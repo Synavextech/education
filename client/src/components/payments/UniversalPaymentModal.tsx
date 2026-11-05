@@ -164,9 +164,12 @@ export default function UniversalPaymentModal() {
 
                 if (!bookingError && booking) {
                     await generateTicketPDF({
-                        eventTitle: booking.Event?.title || "WorldDucationCentre Global Summit",
+                        eventTitle: booking.Event?.title || "worlducationHub Global Summit",
                         eventDate: booking.Event?.date ? format(new Date(booking.Event.date), 'PPPP') : "TBA",
                         eventLocation: booking.Event?.location || "Event Venue",
+                        selectedLocation: booking.selectedLocation || booking.Event?.location,
+                        attendeeAge: booking.attendeeAge,
+                        guardianName: booking.guardianName,
                         userName: profile?.name || user?.email?.split('@')[0] || "Attendee",
                         userEmail: user?.email || "",
                         category: booking.category,

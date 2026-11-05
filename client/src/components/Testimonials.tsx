@@ -6,20 +6,20 @@ import { fetchAllTestimonials } from "@/services/api";
 const communityFallbacks = [
     {
         name: "Mercy Jepchumba",
-        role: "Head of Science & ICT, Singore",
-        content: "WorldDucationCentre completely transformed our school. With the digitized computer lab and smart devices, student engagement in STEM and coding surged overnight.",
+        role: "Head of Science & ICT, worlducationHub",
+        content: "worlducationHub completely transformed our school. With the digitized computer lab and smart devices, student engagement in STEM and coding surged overnight.",
         image: "/images/singore.jpeg"
     },
     {
         name: "Kelvin Kiprotich",
         role: "Secondary Student & Coder",
-        content: "Using the U-Tab learning tablet gave me access to programming lessons and interactive simulators. WorldDucationCentre helped me see my future in tech.",
+        content: "Using the U-Tab learning tablet gave me access to programming lessons and interactive simulators. worlducationHub helped me see my future in tech.",
         image: "/images/IMG-20260618-WA0006.jpg"
     },
     {
-        name: "Sister Veronica",
-        role: "Administrator, Maria Soti Educational Centre",
-        content: "The seasonal summits and educator training hosted by WorldDucationCentre empowered our entire faculty to integrate digital tools into daily classroom lessons.",
+        name: "Wairimu Veronica",
+        role: "Administrator, worlducationHub",
+        content: "The seasonal summits and educator training hosted by worlducationHub empowered our entire faculty to integrate digital tools into daily classroom lessons.",
         image: "/images/mariasoti.jpg"
     },
     {
@@ -29,15 +29,15 @@ const communityFallbacks = [
         image: "/images/IMG-20260618-WA0008.jpg"
     },
     {
-        name: "Paul Rotich",
-        role: "Principal, Tambach Learning Hub",
+        name: "Paul Nyaga",
+        role: "Learning Hub Event Planner",
         content: "The speed and reliability of the hardware installation and digital curriculum deployment exceeded all expectations. True pioneers in digital education.",
         image: "/images/tamb.jpg"
     },
     {
         name: "Amina Hassan",
         role: "Regional Digital Ambassador",
-        content: "WorldDucationCentre's seasonal event structure ensures that learning never halts. From Spring foundations to Winter global showcases, the impact is immense.",
+        content: "worlducationHub's seasonal event structure ensures that learning never halts. From Spring foundations to Winter global showcases, the impact is immense.",
         image: "/images/IMG-20260618-WA0007.jpg"
     }
 ];

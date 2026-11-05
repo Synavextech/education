@@ -6,6 +6,9 @@ export interface TicketData {
     eventTitle: string;
     eventDate: string;
     eventLocation: string;
+    selectedLocation?: string;
+    attendeeAge?: number;
+    guardianName?: string;
     userName: string;
     userEmail: string;
     category: string;
@@ -29,16 +32,16 @@ export const generateTicketPDF = async (data: TicketData): Promise<void> => {
 
     // Website Title / Branding
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(26);
+    doc.setFontSize(24);
     doc.setFont('helvetica', 'bold');
-    doc.text('WDC', 20, 30);
+    doc.text('worlducationHub', 20, 30);
 
-    doc.setFontSize(11);
+    doc.setFontSize(10.5);
     doc.setFont('helvetica', 'normal');
-    doc.text('WorldDucationCentre', 20, 39);
-    doc.setFontSize(9);
+    doc.text('Delivering Knowledge & Skills Shaping the Future', 20, 39);
+    doc.setFontSize(8.5);
     doc.setTextColor(148, 163, 184); // slate-400
-    doc.text('Knowledge & Skills Shaping the Future', 20, 46);
+    doc.text('Global Education & Digital Skills Network', 20, 46);
 
     // Ticket Header
     doc.setTextColor(255, 255, 255);
@@ -75,7 +78,10 @@ export const generateTicketPDF = async (data: TicketData): Promise<void> => {
     doc.setFontSize(10);
     doc.setTextColor(71, 85, 105);
     doc.text(`Date & Time: ${data.eventDate}`, 20, 97);
-    doc.text(`Venue / Location: ${data.eventLocation}`, 20, 104);
+    const venueText = data.selectedLocation
+        ? `${data.selectedLocation} (${data.eventLocation})`
+        : data.eventLocation;
+    doc.text(`Venue / Location: ${venueText}`, 20, 104);
 
     // Attendee & Institution Details Section
     doc.setTextColor(15, 23, 42);
@@ -100,6 +106,14 @@ export const generateTicketPDF = async (data: TicketData): Promise<void> => {
     doc.text('Contact Email:', 20, yPos);
     doc.setFont('helvetica', 'normal');
     doc.text(data.userEmail, 65, yPos);
+
+    if (data.attendeeAge !== undefined && data.attendeeAge !== null) {
+        yPos += 7;
+        doc.setFont('helvetica', 'bold');
+        doc.text('Declared Age:', 20, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`${data.attendeeAge} years${data.guardianName ? ` (Guardian: ${data.guardianName})` : ''}`, 65, yPos);
+    }
 
     if (data.institutionName) {
         yPos += 7;
@@ -148,7 +162,7 @@ export const generateTicketPDF = async (data: TicketData): Promise<void> => {
 
     // Right Column: Official QR Code Container
     try {
-        const origin = typeof window !== 'undefined' ? window.location.origin : 'https://worldducationcentre.org';
+        const origin = typeof window !== 'undefined' ? window.location.origin : 'https://worlducationhub.org';
         const verifyUrl = `${origin}/verify-ticket?bookingId=${encodeURIComponent(data.bookingId)}`;
 
         const qrDataUrl = await QRCode.toDataURL(verifyUrl, {
@@ -200,11 +214,11 @@ export const generateTicketPDF = async (data: TicketData): Promise<void> => {
     doc.rect(0, 260, 210, 37, 'F');
     doc.setTextColor(100, 116, 139);
     doc.setFontSize(9);
-    doc.text('WorldDucationCentre — Shaping the Future through Knowledge & Digital Skills', 105, 274, { align: 'center' });
+    doc.text('worlducationHub — Shaping the Future through Knowledge & Digital Skills', 105, 274, { align: 'center' });
     doc.setFontSize(8);
-    doc.text('Support: support@worldducationcentre.org • Web: www.worldducationcentre.org', 105, 281, { align: 'center' });
+    doc.text('Support: support@worlducationhub.org • Web: www.worlducationhub.org', 105, 281, { align: 'center' });
 
     // Save the PDF
     const safeTitle = data.eventTitle.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 40);
-    doc.save(`WDC_Pass_${safeTitle}_${data.bookingId.slice(0, 8)}.pdf`);
+    doc.save(`worlducationHub_Pass_${safeTitle}_${data.bookingId.slice(0, 8)}.pdf`);
 };

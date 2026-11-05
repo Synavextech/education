@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { MoveRight, Loader2, Sparkles, Laptop, Tablet, Calendar, Award, Globe, CheckCircle2, Play, Users, ArrowUpRight } from "lucide-react";
 import HeroSection from "@/components/HeroSection";
+import HeroShortcuts from "@/components/HeroShortcuts";
 import EventCard from "@/components/EventCard";
 import Testimonials from "@/components/Testimonials";
 import JoinUs from "@/components/JoinUs";
@@ -75,28 +76,24 @@ const seasonalStructure = [
     season: "Spring Season",
     months: "March – May",
     theme: "Digital Literacy & Smart Lab Foundations",
-    icon: "🌸",
     desc: "Kicking off the academic year with foundational computer literacy, typing clubs, and deployment of digitized classroom tools."
   },
   {
     season: "Summer Season",
     months: "June – August",
     theme: "STEM, Robotics & Full-Stack Coding",
-    icon: "☀️",
     desc: "Intensive summer bootcamps where students build interactive web applications, explore robotics, and solve real-world problems."
   },
   {
     season: "Autumn Season",
     months: "September – November",
     theme: "Educator Empowerment & EdTech Forums",
-    icon: "🍂",
     desc: "Focus on training educators, curriculum digitization, and regional technology forums bridging the educational divide."
   },
   {
     season: "Winter Season",
     months: "December – February",
     theme: "Global Education Summit & Innovation Showcase",
-    icon: "❄️",
     desc: "Annual flagship international summit bringing together learners, leaders, and global partners to celebrate digital achievements."
   }
 ];
@@ -166,11 +163,11 @@ export default function Landing() {
           <div className="absolute inset-0 bg-gradient-to-b from-slate-950/90 via-slate-950/80 to-slate-950/95 backdrop-blur-[2px]" />
         </div>
 
-        <div className="container mx-auto px-4 sm:px-6 relative z-10 py-24 flex justify-center">
+        <div className="container mx-auto px-4 sm:px-6 relative z-10 py-20 flex flex-col items-center">
           <div className="max-w-4xl mx-auto text-center flex flex-col items-center space-y-6">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/20 backdrop-blur-md border border-primary/40 text-primary-foreground text-xs sm:text-sm font-bold uppercase tracking-wider animate-in fade-in slide-in-from-top-4 duration-500">
               <Sparkles className="h-4 w-4 text-emerald-400" />
-              <span>WorldDucationCentre • Global Initiative</span>
+              <span>worlducationHub • Global Initiative</span>
             </div>
 
             <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -190,6 +187,19 @@ export default function Landing() {
                 <Link href="/upcoming-events">
                   Explore Seasonal Events <MoveRight className="ml-2 h-5 w-5" />
                 </Link>
+              </Button>
+              <Button
+                size="lg"
+                onClick={() => {
+                  const el = document.getElementById("participate-showcase");
+                  if (el) {
+                    el.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }
+                }}
+                className="bg-gradient-to-r from-cyan-500/25 to-teal-500/20 hover:from-cyan-500/40 hover:to-teal-500/30 border border-cyan-400/60 text-cyan-200 hover:text-white h-14 px-7 text-base sm:text-lg font-bold rounded-2xl shadow-xl shadow-cyan-950/50 backdrop-blur-md transition-all duration-300 hover:scale-105 cursor-pointer"
+              >
+                <Sparkles className="mr-2 h-5 w-5 text-cyan-400 animate-pulse" />
+                Participate & Showcase
               </Button>
               <Button asChild size="lg" variant="outline" className="bg-white/10 backdrop-blur-md border-white/20 text-white hover:bg-white/20 h-14 px-8 text-base sm:text-lg font-bold rounded-2xl">
                 <Link href="/about">Our Digital Mission</Link>
@@ -211,6 +221,11 @@ export default function Landing() {
                 <p className="text-xs sm:text-sm text-slate-400 font-medium">Learners Reached</p>
               </div>
             </div>
+          </div>
+
+          {/* Participate, Showcase & Connect With Our Global Team */}
+          <div id="participate-showcase" className="w-full max-w-6xl mx-auto mt-12 pt-8 border-t border-white/10 scroll-mt-24">
+            <HeroShortcuts />
           </div>
         </div>
       </section>
@@ -296,7 +311,7 @@ export default function Landing() {
                 Structured for Every Season of the Year
               </h2>
               <p className="text-muted-foreground text-base sm:text-lg">
-                The WorldDucationCentre system operates on a synchronized seasonal schedule, guaranteeing continuous learning, practical bootcamps, and global forums.
+                The worlducationHub system operates on a synchronized seasonal schedule, guaranteeing continuous learning, practical bootcamps, and global forums.
               </p>
             </div>
             <Button asChild size="lg" className="rounded-2xl shrink-0">
@@ -314,7 +329,6 @@ export default function Landing() {
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-3xl">{season.icon}</span>
                     <span className="text-xs font-semibold px-2.5 py-1 bg-muted rounded-full text-muted-foreground">
                       {season.months}
                     </span>
@@ -403,7 +417,7 @@ export default function Landing() {
                 </span>
               </h2>
               <p className="text-lg text-slate-300 leading-relaxed font-light">
-                Knowledge is the catalyst of human progress, and digital literacy is its modern currency. At WorldDucationCentre, we dismantle geographical and infrastructural barriers, equipping schools with computer labs, smart tablets, and innovative teachers.
+                Knowledge is the catalyst of human progress, and digital literacy is its modern currency. At worlducationHub, we dismantle geographical and infrastructural barriers, equipping schools with computer labs, smart tablets, and innovative teachers.
               </p>
               <div className="space-y-4 pt-2">
                 <div className="flex items-start gap-4">
@@ -437,7 +451,7 @@ export default function Landing() {
               <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-white/10 group">
                 <img
                   src="/images/all.jpeg"
-                  alt="WorldDucationCentre Community in Action"
+                  alt="worlducationHub Community in Action"
                   className="w-full h-[480px] object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end p-8">
@@ -609,7 +623,7 @@ export default function Landing() {
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
                 <div className="absolute bottom-6 left-6 right-6 text-white">
                   <h4 className="text-lg font-bold tracking-tight mb-1">{item.title}</h4>
-                  <p className="text-xs text-cyan-300 font-medium">WorldDucationCentre Deployment</p>
+                  <p className="text-xs text-cyan-300 font-medium">worlducationHub Deployment</p>
                 </div>
               </div>
             ))}
